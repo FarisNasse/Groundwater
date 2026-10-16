@@ -20,11 +20,10 @@ provisional/other/qualified values are included and counted. `approved_only=true
 an explicit Approved status. A future policy may exclude specific qualifier codes after review
 of official definitions. Filtering them indiscriminately can remove useful observations.
 
-SQLite is a latest-valid-observation cache, not a complete bitemporal ledger. A later quarantined
+The forecasting cache is a latest-valid-observation cache, not a complete bitemporal ledger. A later quarantined
 record does not delete the older valid database row. Analysis deliberately uses the current
 run's snapshot, so this older cache entry is never silently substituted. Raw pages and run
-snapshots retain the audit history. Production use should add explicit withdrawals/tombstones,
-availability timestamps, and well/sensor metadata versioning.
+snapshots retain the audit history. The separate `ingest` ledger now records inferred withdrawals, first-seen availability, and raw monitoring-location metadata versions; see INGESTION.md. It does not reconstruct historical availability or full sensor deployment history.
 
 ## Missingness and staleness
 
@@ -94,8 +93,9 @@ The implementation prevents temporal leakage through feature construction, imput
 recursive prediction, and model selection. Tests perturb future observations to check this.
 However, this is a **retrospective experiment on the current USGS record**. Approved historical
 values may include revisions made after their observation dates. Reconstructing an operational
-backtest requires as-of source snapshots and availability timestamps, which this starter does
-not have. Do not claim point-in-time operational performance.
+backtest requires historical as-of source snapshots and original availability timestamps,
+which these fixtures do not have. The ingestion ledger starts first-seen history only from its
+actual acquisition events. Do not claim point-in-time operational performance.
 
 ## Reproducibility and uncertainty
 
@@ -109,3 +109,23 @@ No calibrated intervals are implemented. A single RMSE is not a prediction inter
 separate chronological residual-calibration period, horizon-specific uncertainty estimates,
 and observed coverage/width diagnostics before presenting intervals as calibrated. Avoid
 reusing final holdout errors to tune uncertainty or model choices.
+
+
+## Spaced validation and isolated epochs (v0.2)
+
+With stride S (default H), fold i has origin `len(development) - H - (K-i-1)S - 1`,
+for zero-based i. Minimum total history is `min_train_days + 2H + (K-1)S` calendar days.
+S must be at least H. Nonadjacent windows sample periods rather than scoring every date; counts
+and observed targets are exported. Diagnostic season/year fields use the target date. Their
+metrics use validation only. No final holdout values are used to pick an origin or a hyperparameter.
+
+Oregon epochs were chosen from source coverage before forecast scoring. The full 2018–2025
+candidate had long missing stretches in 2021–2022, so only 2018–2020 and 2023–2025 are modeled
+independently. No state is carried across the gap, and no claim covers the excluded years.
+All seasonal summaries use northern-hemisphere meteorological seasons. The provided study is
+retrospective, not a revision-free operational backtest.
+
+`requirements-py312.lock` now pins and hashes the tested numerical stack. Use `--require-hashes`
+for that runtime install, then `--no-deps -e .` for project code. Build/dev tools are outside this
+runtime lock. Package versions, source snapshots, and platform differences still limit bitwise
+reproducibility. The clean locked Python 3.12 install was exercised on Linux.

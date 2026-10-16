@@ -1,0 +1,10 @@
+{
+  "selected_model": "persistence",
+  "selection_metric": "pooled validation MAE (ft)",
+  "start": "2025-12-18",
+  "end": "2025-12-31",
+  "mae_ft": 0.10500000000000195,
+  "rmse_ft": 0.12337515378482436,
+  "bias_ft": 0.10500000000000195,
+  "n_observed": 14
+}

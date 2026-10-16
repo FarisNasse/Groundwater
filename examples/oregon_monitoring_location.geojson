@@ -1,0 +1,94 @@
+{
+    "type":"Feature",
+    "properties":{
+        "id":"USGS-420318121312201",
+        "agency_code":"USGS",
+        "agency_name":"U.S. Geological Survey",
+        "monitoring_location_number":"420318121312201",
+        "monitoring_location_name":"40.00S/11.00E-28DDD01",
+        "district_code":"41",
+        "country_code":"US",
+        "country_name":"United States of America",
+        "state_code":"41",
+        "state_name":"Oregon",
+        "county_code":"035",
+        "county_name":"Klamath County",
+        "minor_civil_division_code":null,
+        "site_type_code":"GW",
+        "site_type":"Well",
+        "hydrologic_unit_code":"180102040904",
+        "basin_code":null,
+        "altitude":4299.08,
+        "altitude_accuracy":0.14,
+        "altitude_method_code":"X",
+        "altitude_method_name":"GNSS2 - Level 2 Quality Survey Grade Global Navigation Satellite System",
+        "vertical_datum":"NAVD88",
+        "vertical_datum_name":"North American Vertical Datum of 1988",
+        "horizontal_positional_accuracy_code":"5",
+        "horizontal_positional_accuracy":"Accurate to + or - .5 sec (PLGR/PPS GPS).",
+        "horizontal_position_method_code":"G",
+        "horizontal_position_method_name":"Global positioning system (GPS), Standard Positioning Service (SPS) or Precise Positioning Service (PPS)",
+        "original_horizontal_datum":"NAD83",
+        "original_horizontal_datum_name":"North American Datum of 1983",
+        "drainage_area":null,
+        "contributing_drainage_area":null,
+        "time_zone_abbreviation":"PST",
+        "uses_daylight_savings":"Y",
+        "construction_date":"19791210",
+        "aquifer_code":"110BSLT",
+        "national_aquifer_code":"N100PCFNWV",
+        "aquifer_type_code":"C",
+        "well_constructed_depth":335.0,
+        "hole_constructed_depth":335.0,
+        "depth_source_code":"D",
+        "revision_note":null,
+        "revision_created":null,
+        "revision_modified":null
+    },
+    "id":"USGS-420318121312201",
+    "geometry":{
+        "type":"Point",
+        "coordinates":[
+            -121.523861111111,
+            42.0548333333333
+        ]
+    },
+    "links":[
+        {
+            "type":"application/json",
+            "rel":"root",
+            "title":"The landing page of this server as JSON",
+            "href":"https://api.waterdata.usgs.gov/ogcapi/v1?f=json"
+        },
+        {
+            "type":"text/html",
+            "rel":"root",
+            "title":"The landing page of this server as HTML",
+            "href":"https://api.waterdata.usgs.gov/ogcapi/v1?f=html"
+        },
+        {
+            "rel":"self",
+            "type":"application/geo+json",
+            "title":"This document as JSON",
+            "href":"https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items/USGS-420318121312201?f=json"
+        },
+        {
+            "rel":"alternate",
+            "type":"application/ld+json",
+            "title":"This document as RDF (JSON-LD)",
+            "href":"https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items/USGS-420318121312201?f=jsonld"
+        },
+        {
+            "rel":"alternate",
+            "type":"text/html",
+            "title":"This document as HTML",
+            "href":"https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items/USGS-420318121312201?f=html"
+        },
+        {
+            "rel":"collection",
+            "type":"application/json",
+            "title":"Monitoring locations",
+            "href":"https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations"
+        }
+    ]
+}

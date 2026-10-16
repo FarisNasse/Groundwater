@@ -1,0 +1,43 @@
+{
+  "run_id": "2026-10-16T00-24-24.434592+00-00-b24a0b40",
+  "started_at": "2026-10-16T00:24:24.434718+00:00",
+  "source_mode": "replay",
+  "config": {
+    "site": "USGS-420318121312201",
+    "start": "2023-01-01",
+    "end": "2025-12-31",
+    "parameter_code": "72019",
+    "statistic_id": "00003",
+    "approved_only": false,
+    "horizon": 14,
+    "folds": 24,
+    "min_train_days": 365,
+    "max_gap_days": 3,
+    "min_coverage": 0.95,
+    "anomaly_window": 60,
+    "anomaly_threshold": 4.5,
+    "anomaly_scale_floor_ft": 0.05,
+    "validation_stride_days": 30,
+    "series_id": "d750bc81e1d6455190d36fab703385a1"
+  },
+  "status": "complete",
+  "pages": [
+    {
+      "path": "/workspace/scratch/b3355e66dd9d/work/Groundwater-main/artifacts/release-study/studies/2026-10-16T00-24-16.688375+00-00-3cccaa42/oregon_2023_2025/bronze/replay/052e0bf2409763f7de0201588cbcc6f543afb765c75bb121d184b15add54b824.json",
+      "sha256": "052e0bf2409763f7de0201588cbcc6f543afb765c75bb121d184b15add54b824",
+      "input_file": "/workspace/scratch/b3355e66dd9d/work/Groundwater-main/examples/oregon_daily_2023_2025.geojson",
+      "note": "Replayed input; verify original retrieval provenance"
+    }
+  ],
+  "code_sha256": "481d1bf4b88d12c53b75e135b5cfcf078982b5322b1efc52ac4fb46b9317c56f",
+  "environment": {
+    "python": "3.12.14",
+    "numpy": "2.3.5",
+    "pandas": "2.2.3",
+    "scikit-learn": "1.8.0"
+  },
+  "observations_sha256": "1a949795a63f11602fbe43c77baf82e323703cedaecbcc293fbfc7effb6260f7",
+  "selected_model": "persistence",
+  "holdout_mae_ft": 0.10500000000000195,
+  "finished_at": "2026-10-16T00:24:30.652043+00:00"
+}

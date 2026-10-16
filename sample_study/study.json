@@ -1,0 +1,398 @@
+{
+  "started_at": "2026-10-16T00:24:16.688587+00:00",
+  "declaration": {
+    "description": "Fixed baselines on two wells; Oregon epochs isolated across long missing periods. No pooling across sites. Do not tune using final holdout results.",
+    "experiments": [
+      {
+        "id": "reference_2023_2024",
+        "config": "default.toml",
+        "snapshot": "../examples/usgs_daily_2023_2024.geojson"
+      },
+      {
+        "id": "oregon_2018_2020",
+        "config": "oregon_2018_2020.toml",
+        "snapshot": "../examples/oregon_daily_2018_2020.geojson",
+        "metadata": "../examples/oregon_monitoring_location.geojson"
+      },
+      {
+        "id": "oregon_2023_2025",
+        "config": "oregon_2023_2025.toml",
+        "snapshot": "../examples/oregon_daily_2023_2025.geojson",
+        "metadata": "../examples/oregon_monitoring_location.geojson"
+      }
+    ]
+  },
+  "experiments": [
+    {
+      "id": "reference_2023_2024",
+      "status": "complete",
+      "config": {
+        "site": "USGS-444302070252401",
+        "start": "2023-01-01",
+        "end": "2024-12-31",
+        "parameter_code": "72019",
+        "statistic_id": "00003",
+        "approved_only": false,
+        "horizon": 14,
+        "folds": 4,
+        "min_train_days": 365,
+        "max_gap_days": 3,
+        "min_coverage": 0.95,
+        "anomaly_window": 60,
+        "anomaly_threshold": 4.5,
+        "anomaly_scale_floor_ft": 0.05,
+        "validation_stride_days": null,
+        "series_id": null
+      },
+      "report": "reference_2023_2024/runs/2026-10-16T00-24-16.688992+00-00-5046a086/report.html",
+      "quality": {
+        "input_records": 731,
+        "valid_records": 731,
+        "quarantined_records": 0,
+        "filtered_other_series": 0,
+        "duplicate_revisions_removed": 0,
+        "first_observed": "2023-01-01",
+        "last_observed": "2024-12-31",
+        "calendar_days": 731,
+        "observed_days": 731,
+        "missing_days": 0,
+        "longest_gap_days": 0,
+        "coverage_within_observed_span": 1.0,
+        "requested_start": "2023-01-01",
+        "requested_end": "2024-12-31",
+        "missing_requested_leading_days": 0,
+        "missing_requested_trailing_days": 0,
+        "age_days_at_run": 654,
+        "provisional_or_other_records": 0,
+        "qualified_records": 0,
+        "forecast_blockers": []
+      },
+      "holdout": {
+        "selected_model": "persistence",
+        "selection_metric": "pooled validation MAE (ft)",
+        "start": "2024-12-18",
+        "end": "2024-12-31",
+        "mae_ft": 1.2628571428571431,
+        "rmse_ft": 1.3927824155778454,
+        "bias_ft": 1.2628571428571431,
+        "n_observed": 14
+      },
+      "selected_model": "persistence",
+      "observations_sha256": "c1daf565c99b87f58440de61011e0646331f8522713235ae15b3377849919707",
+      "code_sha256": "481d1bf4b88d12c53b75e135b5cfcf078982b5322b1efc52ac4fb46b9317c56f",
+      "metadata": null,
+      "elapsed_seconds": 1.16
+    },
+    {
+      "id": "oregon_2018_2020",
+      "status": "complete",
+      "config": {
+        "site": "USGS-420318121312201",
+        "start": "2018-01-01",
+        "end": "2020-12-31",
+        "parameter_code": "72019",
+        "statistic_id": "00003",
+        "approved_only": false,
+        "horizon": 14,
+        "folds": 24,
+        "min_train_days": 365,
+        "max_gap_days": 3,
+        "min_coverage": 0.95,
+        "anomaly_window": 60,
+        "anomaly_threshold": 4.5,
+        "anomaly_scale_floor_ft": 0.05,
+        "validation_stride_days": 30,
+        "series_id": "d750bc81e1d6455190d36fab703385a1"
+      },
+      "metadata_sha256": "bccecc400669378a82211fc2e598cbacd53eaf7d5ee886f80f36f5e121c69f1a",
+      "report": "oregon_2018_2020/runs/2026-10-16T00-24-17.849614+00-00-e21bbcc7/report.html",
+      "quality": {
+        "input_records": 1093,
+        "valid_records": 1093,
+        "quarantined_records": 0,
+        "filtered_other_series": 0,
+        "duplicate_revisions_removed": 0,
+        "first_observed": "2018-01-01",
+        "last_observed": "2020-12-31",
+        "calendar_days": 1096,
+        "observed_days": 1093,
+        "missing_days": 3,
+        "longest_gap_days": 3,
+        "coverage_within_observed_span": 0.9972627737226277,
+        "requested_start": "2018-01-01",
+        "requested_end": "2020-12-31",
+        "missing_requested_leading_days": 0,
+        "missing_requested_trailing_days": 0,
+        "age_days_at_run": 2115,
+        "provisional_or_other_records": 0,
+        "qualified_records": 0,
+        "forecast_blockers": []
+      },
+      "holdout": {
+        "selected_model": "persistence",
+        "selection_metric": "pooled validation MAE (ft)",
+        "start": "2020-12-18",
+        "end": "2020-12-31",
+        "mae_ft": 0.43785714285716687,
+        "rmse_ft": 0.5021311723899801,
+        "bias_ft": 0.43785714285716687,
+        "n_observed": 14
+      },
+      "selected_model": "persistence",
+      "observations_sha256": "11a0125fb28610c6f7eb2d4ad410ca1c4d7fc6730c45761db892d0ce117286fd",
+      "code_sha256": "481d1bf4b88d12c53b75e135b5cfcf078982b5322b1efc52ac4fb46b9317c56f",
+      "metadata": {
+        "type": "Feature",
+        "properties": {
+          "id": "USGS-420318121312201",
+          "agency_code": "USGS",
+          "agency_name": "U.S. Geological Survey",
+          "monitoring_location_number": "420318121312201",
+          "monitoring_location_name": "40.00S/11.00E-28DDD01",
+          "district_code": "41",
+          "country_code": "US",
+          "country_name": "United States of America",
+          "state_code": "41",
+          "state_name": "Oregon",
+          "county_code": "035",
+          "county_name": "Klamath County",
+          "minor_civil_division_code": null,
+          "site_type_code": "GW",
+          "site_type": "Well",
+          "hydrologic_unit_code": "180102040904",
+          "basin_code": null,
+          "altitude": 4299.08,
+          "altitude_accuracy": 0.14,
+          "altitude_method_code": "X",
+          "altitude_method_name": "GNSS2 - Level 2 Quality Survey Grade Global Navigation Satellite System",
+          "vertical_datum": "NAVD88",
+          "vertical_datum_name": "North American Vertical Datum of 1988",
+          "horizontal_positional_accuracy_code": "5",
+          "horizontal_positional_accuracy": "Accurate to + or - .5 sec (PLGR/PPS GPS).",
+          "horizontal_position_method_code": "G",
+          "horizontal_position_method_name": "Global positioning system (GPS), Standard Positioning Service (SPS) or Precise Positioning Service (PPS)",
+          "original_horizontal_datum": "NAD83",
+          "original_horizontal_datum_name": "North American Datum of 1983",
+          "drainage_area": null,
+          "contributing_drainage_area": null,
+          "time_zone_abbreviation": "PST",
+          "uses_daylight_savings": "Y",
+          "construction_date": "19791210",
+          "aquifer_code": "110BSLT",
+          "national_aquifer_code": "N100PCFNWV",
+          "aquifer_type_code": "C",
+          "well_constructed_depth": 335.0,
+          "hole_constructed_depth": 335.0,
+          "depth_source_code": "D",
+          "revision_note": null,
+          "revision_created": null,
+          "revision_modified": null
+        },
+        "id": "USGS-420318121312201",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -121.523861111111,
+            42.0548333333333
+          ]
+        },
+        "links": [
+          {
+            "type": "application/json",
+            "rel": "root",
+            "title": "The landing page of this server as JSON",
+            "href": "https://api.waterdata.usgs.gov/ogcapi/v1?f=json"
+          },
+          {
+            "type": "text/html",
+            "rel": "root",
+            "title": "The landing page of this server as HTML",
+            "href": "https://api.waterdata.usgs.gov/ogcapi/v1?f=html"
+          },
+          {
+            "rel": "self",
+            "type": "application/geo+json",
+            "title": "This document as JSON",
+            "href": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items/USGS-420318121312201?f=json"
+          },
+          {
+            "rel": "alternate",
+            "type": "application/ld+json",
+            "title": "This document as RDF (JSON-LD)",
+            "href": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items/USGS-420318121312201?f=jsonld"
+          },
+          {
+            "rel": "alternate",
+            "type": "text/html",
+            "title": "This document as HTML",
+            "href": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items/USGS-420318121312201?f=html"
+          },
+          {
+            "rel": "collection",
+            "type": "application/json",
+            "title": "Monitoring locations",
+            "href": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations"
+          }
+        ]
+      },
+      "elapsed_seconds": 6.585
+    },
+    {
+      "id": "oregon_2023_2025",
+      "status": "complete",
+      "config": {
+        "site": "USGS-420318121312201",
+        "start": "2023-01-01",
+        "end": "2025-12-31",
+        "parameter_code": "72019",
+        "statistic_id": "00003",
+        "approved_only": false,
+        "horizon": 14,
+        "folds": 24,
+        "min_train_days": 365,
+        "max_gap_days": 3,
+        "min_coverage": 0.95,
+        "anomaly_window": 60,
+        "anomaly_threshold": 4.5,
+        "anomaly_scale_floor_ft": 0.05,
+        "validation_stride_days": 30,
+        "series_id": "d750bc81e1d6455190d36fab703385a1"
+      },
+      "metadata_sha256": "bccecc400669378a82211fc2e598cbacd53eaf7d5ee886f80f36f5e121c69f1a",
+      "report": "oregon_2023_2025/runs/2026-10-16T00-24-24.434592+00-00-b24a0b40/report.html",
+      "quality": {
+        "input_records": 1096,
+        "valid_records": 1096,
+        "quarantined_records": 0,
+        "filtered_other_series": 0,
+        "duplicate_revisions_removed": 0,
+        "first_observed": "2023-01-01",
+        "last_observed": "2025-12-31",
+        "calendar_days": 1096,
+        "observed_days": 1096,
+        "missing_days": 0,
+        "longest_gap_days": 0,
+        "coverage_within_observed_span": 1.0,
+        "requested_start": "2023-01-01",
+        "requested_end": "2025-12-31",
+        "missing_requested_leading_days": 0,
+        "missing_requested_trailing_days": 0,
+        "age_days_at_run": 289,
+        "provisional_or_other_records": 45,
+        "qualified_records": 0,
+        "forecast_blockers": []
+      },
+      "holdout": {
+        "selected_model": "persistence",
+        "selection_metric": "pooled validation MAE (ft)",
+        "start": "2025-12-18",
+        "end": "2025-12-31",
+        "mae_ft": 0.10500000000000195,
+        "rmse_ft": 0.12337515378482436,
+        "bias_ft": 0.10500000000000195,
+        "n_observed": 14
+      },
+      "selected_model": "persistence",
+      "observations_sha256": "1a949795a63f11602fbe43c77baf82e323703cedaecbcc293fbfc7effb6260f7",
+      "code_sha256": "481d1bf4b88d12c53b75e135b5cfcf078982b5322b1efc52ac4fb46b9317c56f",
+      "metadata": {
+        "type": "Feature",
+        "properties": {
+          "id": "USGS-420318121312201",
+          "agency_code": "USGS",
+          "agency_name": "U.S. Geological Survey",
+          "monitoring_location_number": "420318121312201",
+          "monitoring_location_name": "40.00S/11.00E-28DDD01",
+          "district_code": "41",
+          "country_code": "US",
+          "country_name": "United States of America",
+          "state_code": "41",
+          "state_name": "Oregon",
+          "county_code": "035",
+          "county_name": "Klamath County",
+          "minor_civil_division_code": null,
+          "site_type_code": "GW",
+          "site_type": "Well",
+          "hydrologic_unit_code": "180102040904",
+          "basin_code": null,
+          "altitude": 4299.08,
+          "altitude_accuracy": 0.14,
+          "altitude_method_code": "X",
+          "altitude_method_name": "GNSS2 - Level 2 Quality Survey Grade Global Navigation Satellite System",
+          "vertical_datum": "NAVD88",
+          "vertical_datum_name": "North American Vertical Datum of 1988",
+          "horizontal_positional_accuracy_code": "5",
+          "horizontal_positional_accuracy": "Accurate to + or - .5 sec (PLGR/PPS GPS).",
+          "horizontal_position_method_code": "G",
+          "horizontal_position_method_name": "Global positioning system (GPS), Standard Positioning Service (SPS) or Precise Positioning Service (PPS)",
+          "original_horizontal_datum": "NAD83",
+          "original_horizontal_datum_name": "North American Datum of 1983",
+          "drainage_area": null,
+          "contributing_drainage_area": null,
+          "time_zone_abbreviation": "PST",
+          "uses_daylight_savings": "Y",
+          "construction_date": "19791210",
+          "aquifer_code": "110BSLT",
+          "national_aquifer_code": "N100PCFNWV",
+          "aquifer_type_code": "C",
+          "well_constructed_depth": 335.0,
+          "hole_constructed_depth": 335.0,
+          "depth_source_code": "D",
+          "revision_note": null,
+          "revision_created": null,
+          "revision_modified": null
+        },
+        "id": "USGS-420318121312201",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -121.523861111111,
+            42.0548333333333
+          ]
+        },
+        "links": [
+          {
+            "type": "application/json",
+            "rel": "root",
+            "title": "The landing page of this server as JSON",
+            "href": "https://api.waterdata.usgs.gov/ogcapi/v1?f=json"
+          },
+          {
+            "type": "text/html",
+            "rel": "root",
+            "title": "The landing page of this server as HTML",
+            "href": "https://api.waterdata.usgs.gov/ogcapi/v1?f=html"
+          },
+          {
+            "rel": "self",
+            "type": "application/geo+json",
+            "title": "This document as JSON",
+            "href": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items/USGS-420318121312201?f=json"
+          },
+          {
+            "rel": "alternate",
+            "type": "application/ld+json",
+            "title": "This document as RDF (JSON-LD)",
+            "href": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items/USGS-420318121312201?f=jsonld"
+          },
+          {
+            "rel": "alternate",
+            "type": "text/html",
+            "title": "This document as HTML",
+            "href": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items/USGS-420318121312201?f=html"
+          },
+          {
+            "rel": "collection",
+            "type": "application/json",
+            "title": "Monitoring locations",
+            "href": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations"
+          }
+        ]
+      },
+      "elapsed_seconds": 6.221
+    }
+  ],
+  "status": "complete",
+  "finished_at": "2026-10-16T00:24:30.655388+00:00",
+  "unique_wells": 2
+}

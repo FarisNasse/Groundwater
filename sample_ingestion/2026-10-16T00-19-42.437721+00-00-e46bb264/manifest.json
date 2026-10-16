@@ -1,0 +1,83 @@
+{
+  "event_id": "2026-10-16T00-19-42.437721+00-00-e46bb264",
+  "dataset_id": "067e5ff6e48383126c91da955f5262eb5fc9c6f1874d559625adad5819e8a6ea",
+  "status": "complete",
+  "source_mode": "live",
+  "config": {
+    "site": "USGS-420318121312201",
+    "start": "2023-01-01",
+    "end": "2025-12-31",
+    "parameter_code": "72019",
+    "statistic_id": "00003",
+    "approved_only": false,
+    "horizon": 14,
+    "folds": 24,
+    "min_train_days": 365,
+    "max_gap_days": 3,
+    "min_coverage": 0.95,
+    "anomaly_window": 60,
+    "anomaly_threshold": 4.5,
+    "anomaly_scale_floor_ft": 0.05,
+    "validation_stride_days": 30,
+    "series_id": "d750bc81e1d6455190d36fab703385a1"
+  },
+  "started_at": "2026-10-16T00:19:42.437897+00:00",
+  "pages": [
+    {
+      "path": "/workspace/scratch/b3355e66dd9d/work/Groundwater-main/artifacts/ingest-live/bronze/ingest_live/8b491d2ebe371bba956c5837d031156965b7922f5bff7f3352b98110f00325fd.json",
+      "sha256": "8b491d2ebe371bba956c5837d031156965b7922f5bff7f3352b98110f00325fd",
+      "request_url": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/daily/items?f=json&monitoring_location_id=USGS-420318121312201&parameter_code=72019&statistic_id=00003&datetime=2023-01-01%2F2025-12-31&limit=10000",
+      "retrieved_at": "2026-10-16T00:19:46.376947+00:00"
+    }
+  ],
+  "code_sha256": "c18887d3369b7e045a71a7eb025827631fba59232409ca74b0d50a6a23fd6e35",
+  "lookback_days": 30,
+  "rebuild_days": 30,
+  "query": {
+    "site": "USGS-420318121312201",
+    "start": "2023-01-01",
+    "end": "2025-12-31",
+    "parameter_code": "72019",
+    "statistic_id": "00003",
+    "approved_only": false,
+    "horizon": 14,
+    "folds": 24,
+    "min_train_days": 365,
+    "max_gap_days": 3,
+    "min_coverage": 0.95,
+    "anomaly_window": 60,
+    "anomaly_threshold": 4.5,
+    "anomaly_scale_floor_ft": 0.05,
+    "validation_stride_days": 30,
+    "series_id": "d750bc81e1d6455190d36fab703385a1"
+  },
+  "query_kind": "full_refresh",
+  "metadata_page": {
+    "path": "/workspace/scratch/b3355e66dd9d/work/Groundwater-main/artifacts/ingest-live/bronze/metadata/bccecc400669378a82211fc2e598cbacd53eaf7d5ee886f80f36f5e121c69f1a.json",
+    "sha256": "bccecc400669378a82211fc2e598cbacd53eaf7d5ee886f80f36f5e121c69f1a",
+    "request_url": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items/USGS-420318121312201?f=json",
+    "retrieved_at": "2026-10-16T00:19:49.138000+00:00"
+  },
+  "snapshot_records": 1096,
+  "observations_sha256": "1a949795a63f11602fbe43c77baf82e323703cedaecbcc293fbfc7effb6260f7",
+  "freshness_days": 289,
+  "missing_requested_days": 0,
+  "newest_observation_age_at_ingestion_days": 289,
+  "counts": {
+    "inserted": 1096,
+    "revised": 0,
+    "unchanged": 0,
+    "stale_revisions": 0,
+    "withdrawn": 0,
+    "restored": 0,
+    "new_revision_records": 1096
+  },
+  "quality": {
+    "input_records": 1096,
+    "valid_records": 1096,
+    "quarantined_records": 0,
+    "filtered_other_series": 0,
+    "duplicate_revisions_removed": 0
+  },
+  "finished_at": "2026-10-16T00:19:49.186321+00:00"
+}

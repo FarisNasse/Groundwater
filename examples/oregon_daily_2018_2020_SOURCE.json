@@ -1,0 +1,11 @@
+{
+  "source": "USGS Water Data OGC API v1 daily collection",
+  "site": "USGS-420318121312201",
+  "start": "2018-01-01",
+  "end": "2020-12-31",
+  "records": 1093,
+  "sha256": "1dfed68a15094e25aa626dc37a63e0f6298425bdee6d2b8ff26fe4591867c732",
+  "request_url": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/daily/items?f=json&monitoring_location_id=USGS-420318121312201&parameter_code=72019&statistic_id=00003&datetime=2018-01-01%2F2020-12-31&limit=10000",
+  "retrieved_at": "2026-10-16T00:16:42.576886+00:00",
+  "notes": "Frozen complete response; original bytes. Historical replay, not current conditions."
+}

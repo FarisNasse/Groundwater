@@ -98,6 +98,17 @@ class USGSClient:
             "limit": 10000,
         }, raw_dir)
 
+    def location(self, site, raw_dir):
+        # Monitoring-location identifiers are restricted, never arbitrary URL paths.
+        if not site.startswith("USGS-") or not site[5:].isdigit():
+            raise ValueError("Invalid USGS location identifier")
+        url = f"{BASE}/collections/monitoring-locations/items/{site}?f=json"
+        raw = self._get(url)
+        item = json.loads(raw)
+        if item.get("type") != "Feature" or item.get("id") != site:
+            raise ValueError("Unexpected monitoring-location metadata identity")
+        return item, {**archive(raw, Path(raw_dir)), "request_url": url, "retrieved_at": utc_now()}
+
     def discover(self, bbox, raw_dir):
         # Latest-daily verifies that each candidate actually has the requested daily statistic.
         return self.fetch("latest-daily", {

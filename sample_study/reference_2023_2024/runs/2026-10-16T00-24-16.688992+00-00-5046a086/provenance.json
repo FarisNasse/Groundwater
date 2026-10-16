@@ -1,0 +1,43 @@
+{
+  "run_id": "2026-10-16T00-24-16.688992+00-00-5046a086",
+  "started_at": "2026-10-16T00:24:16.689149+00:00",
+  "source_mode": "replay",
+  "config": {
+    "site": "USGS-444302070252401",
+    "start": "2023-01-01",
+    "end": "2024-12-31",
+    "parameter_code": "72019",
+    "statistic_id": "00003",
+    "approved_only": false,
+    "horizon": 14,
+    "folds": 4,
+    "min_train_days": 365,
+    "max_gap_days": 3,
+    "min_coverage": 0.95,
+    "anomaly_window": 60,
+    "anomaly_threshold": 4.5,
+    "anomaly_scale_floor_ft": 0.05,
+    "validation_stride_days": null,
+    "series_id": null
+  },
+  "status": "complete",
+  "pages": [
+    {
+      "path": "/workspace/scratch/b3355e66dd9d/work/Groundwater-main/artifacts/release-study/studies/2026-10-16T00-24-16.688375+00-00-3cccaa42/reference_2023_2024/bronze/replay/6d094dd4e8605919c8828f945a0bc57365dafecc36112c43c4dba5c3d4d79b68.json",
+      "sha256": "6d094dd4e8605919c8828f945a0bc57365dafecc36112c43c4dba5c3d4d79b68",
+      "input_file": "/workspace/scratch/b3355e66dd9d/work/Groundwater-main/examples/usgs_daily_2023_2024.geojson",
+      "note": "Replayed input; verify original retrieval provenance"
+    }
+  ],
+  "code_sha256": "481d1bf4b88d12c53b75e135b5cfcf078982b5322b1efc52ac4fb46b9317c56f",
+  "environment": {
+    "python": "3.12.14",
+    "numpy": "2.3.5",
+    "pandas": "2.2.3",
+    "scikit-learn": "1.8.0"
+  },
+  "observations_sha256": "c1daf565c99b87f58440de61011e0646331f8522713235ae15b3377849919707",
+  "selected_model": "persistence",
+  "holdout_mae_ft": 1.2628571428571431,
+  "finished_at": "2026-10-16T00:24:17.846422+00:00"
+}

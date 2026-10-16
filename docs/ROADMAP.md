@@ -1,5 +1,10 @@
 # Build-out roadmap
 
+**v0.2 progress:** the first milestone now has a reproducible two-well case study; much of
+the local ingestion milestone is implemented, and saved experiments have a read-only catalog.
+See [RUSH_REVIEW.md](RUSH_REVIEW.md) for delivered work, measured evidence, and remaining items.
+The sections below retain the long-term goals; they are not all marked complete.
+
 ## 1. Own the baseline experiment
 
 - Reproduce the supplied real-data run and explain each quality field and error metric.

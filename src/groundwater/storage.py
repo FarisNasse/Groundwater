@@ -14,6 +14,15 @@ def upsert(frame, database):
             unit TEXT NOT NULL CHECK(unit='ft'), approval_status TEXT NOT NULL,
             qualifier TEXT NOT NULL, last_modified TEXT NOT NULL,
             PRIMARY KEY(site,series_id,date,parameter_code,statistic_id))""")
+        for row in frame.to_dict("records"):
+            old = conn.execute("""SELECT depth_ft,approval_status,qualifier,last_modified
+                FROM observations WHERE site=? AND series_id=? AND date=?
+                AND parameter_code=? AND statistic_id=?""",
+                tuple(row[k] for k in ("site", "series_id", "date", "parameter_code", "statistic_id"))
+                ).fetchone()
+            if old and old[3] == row["last_modified"] and old[:3] != tuple(
+                    row[k] for k in ("depth_ft", "approval_status", "qualifier")):
+                raise ValueError("Conflicting cached values with identical source revision")
         conn.executemany("""INSERT INTO observations VALUES (?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(site,series_id,date,parameter_code,statistic_id) DO UPDATE SET
             depth_ft=excluded.depth_ft, approval_status=excluded.approval_status,

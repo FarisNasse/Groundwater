@@ -1,0 +1,11 @@
+# Fixed evaluation rules; epochs selected for daily coverage, before scoring models.
+site = "USGS-420318121312201"
+series_id = "d750bc81e1d6455190d36fab703385a1"
+start = "2023-01-01"
+end = "2025-12-31"
+horizon = 14
+folds = 24
+validation_stride_days = 30
+min_train_days = 365
+max_gap_days = 3
+min_coverage = 0.95

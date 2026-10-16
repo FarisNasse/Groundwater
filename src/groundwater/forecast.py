@@ -63,7 +63,7 @@ def predict(model_name, train, horizon, max_gap_days=3):
 
 
 def metrics(actual, predicted):
-    mask = actual.notna() & predicted.notna()
+    mask = np.isfinite(actual) & np.isfinite(predicted)
     residual = predicted[mask].to_numpy() - actual[mask].to_numpy()
     if not len(residual):
         raise ValueError("No observed targets in evaluation window")
@@ -72,25 +72,48 @@ def metrics(actual, predicted):
             "bias_ft": float(np.mean(residual)), "n_observed": len(residual)}
 
 
+def validation_diagnostics(predictions):
+    """Validation-only error slices; season is meteorological season of the target date."""
+    data = predictions.copy()
+    dates = pd.to_datetime(data.date)
+    data["year"] = dates.dt.year
+    data["season"] = dates.dt.month.map({12: "DJF", 1: "DJF", 2: "DJF",
+        3: "MAM", 4: "MAM", 5: "MAM", 6: "JJA", 7: "JJA", 8: "JJA",
+        9: "SON", 10: "SON", 11: "SON"})
+    output = {}
+    for dimension in ("lead_day", "season", "year"):
+        rows = []
+        for (name, value), group in data.groupby(["model", dimension], sort=True):
+            if not (np.isfinite(group.actual_ft) & np.isfinite(group.predicted_ft)).any():
+                continue
+            rows.append({"model": name, dimension: value,
+                         **metrics(group.actual_ft, group.predicted_ft)})
+        output[f"errors_by_{dimension}"] = pd.DataFrame(rows)
+    return output
+
+
 def evaluate(series, config):
     horizon = config.horizon
     # Final horizon is locked away from model selection. Earlier windows do not overlap.
     development = series.iloc[:-horizon]
-    needed = config.min_train_days + config.folds * horizon
+    stride = config.validation_stride_days or horizon
+    needed = config.min_train_days + horizon + (config.folds - 1) * stride
     if len(development) < needed:
         raise ValueError(f"Need at least {needed + horizon} calendar days; got {len(series)}")
     rows, forecasts = [], []
     for fold in range(config.folds):
-        end = len(development) - (config.folds - fold) * horizon
+        end = len(development) - horizon - (config.folds - fold - 1) * stride
         train, actual = development.iloc[:end], development.iloc[end:end + horizon]
         for name in MODELS:
             pred = predict(name, train, horizon, config.max_gap_days)
             rows.append({"fold": fold + 1, "model": name,
+                         "forecast_origin": train.index[-1].date().isoformat(),
                          "train_end": train.index[-1].date().isoformat(),
                          "test_start": actual.index[0].date().isoformat(),
                          "test_end": actual.index[-1].date().isoformat(), **metrics(actual, pred)})
             for lead, (day, value) in enumerate(pred.items(), 1):
                 forecasts.append({"fold": fold + 1, "model": name, "date": str(day.date()),
+                                  "forecast_origin": str(train.index[-1].date()),
                                   "lead_day": lead, "actual_ft": actual.loc[day],
                                   "predicted_ft": value})
     folds = pd.DataFrame(rows)
@@ -116,4 +139,4 @@ def evaluate(series, config):
         frame.index.name = "date"
     return {"leaderboard": leaderboard, "folds": folds, "validation_predictions": predictions,
             "holdout": holdout, "holdout_predictions": holdout_frame,
-            "forecast": future_frame}
+            "forecast": future_frame, **validation_diagnostics(predictions)}

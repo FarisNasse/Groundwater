@@ -1,0 +1,22 @@
+{
+  "input_records": 1093,
+  "valid_records": 1093,
+  "quarantined_records": 0,
+  "filtered_other_series": 0,
+  "duplicate_revisions_removed": 0,
+  "first_observed": "2018-01-01",
+  "last_observed": "2020-12-31",
+  "calendar_days": 1096,
+  "observed_days": 1093,
+  "missing_days": 3,
+  "longest_gap_days": 3,
+  "coverage_within_observed_span": 0.9972627737226277,
+  "requested_start": "2018-01-01",
+  "requested_end": "2020-12-31",
+  "missing_requested_leading_days": 0,
+  "missing_requested_trailing_days": 0,
+  "age_days_at_run": 2115,
+  "provisional_or_other_records": 0,
+  "qualified_records": 0,
+  "forecast_blockers": []
+}

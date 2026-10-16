@@ -84,7 +84,8 @@ def run(config, root, mode="live", replay_file=None):
         if issues:
             raise ValueError("Forecast blocked: " + "; ".join(issues))
         result = evaluate(series, config)
-        for name in ("leaderboard", "folds", "validation_predictions"):
+        for name in ("leaderboard", "folds", "validation_predictions",
+                     "errors_by_lead_day", "errors_by_season", "errors_by_year"):
             result[name].to_csv(directory / f"{name}.csv", index=False)
         for name in ("holdout_predictions", "forecast"):
             result[name].to_csv(directory / f"{name}.csv")

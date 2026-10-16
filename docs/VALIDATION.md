@@ -1,50 +1,59 @@
-# Starter verification
+# v0.2 verification
 
-Verified on October 15, 2026 with Python 3.12.14, NumPy 2.3.5, pandas 2.2.3,
-and scikit-learn 1.8.0. Exact installed numerical dependencies are listed in
-`requirements-tested.txt`; that file is an environment snapshot, not a hash-locked build.
+Verified October 15, 2026 (Pacific time), using Linux Python 3.12.14, NumPy 2.3.5,
+pandas 2.2.3, and scikit-learn 1.8.0. Numerical versions match `requirements-tested.txt`.
+`requirements-py312.lock` now provides pinned versions and package hashes for the Python 3.12
+runtime stack. Build tools and developer tools are outside that runtime lock.
 
-## Completed checks
+## Local checks completed
 
-- Editable package installation succeeded.
-- The installed CLI and `python -m groundwater` entry points ran.
-- All 14 offline unittest tests passed. They cover contract rejection, revision selection,
-  conflicting series, negative depth, approval filtering, idempotent upserts, calendar gaps,
-  pagination, untrusted next links, failure provenance, causal anomaly references, lag features,
-  recursive prediction inputs, insufficient history, and final-holdout isolation.
-- A full replay of the bundled real USGS snapshot completed and produced all documented outputs.
-- A full live fetch through the implemented USGS client completed for the same site/date range:
-  731 records, zero quarantined records, 100% internal daily coverage.
-- The synthetic pipeline completed with the explicit synthetic label and isolated storage.
-- Live geographic discovery completed for the Portland-area bounding box in README. Results
-  included historical/inactive records, so latest dates must be reviewed before choosing a well.
-- The report's HTML/SVG structure and exported metrics were checked. No browser-based visual
-  QA was performed; the report is a portable starter presentation, not a polished application UI.
-- Python source compilation passed.
+- All **30 offline unittest tests passed**, including the original 14 tests.
+- Ruff 0.14.0 lint passed, and Python source compilation passed.
+- A clean isolated Python 3.12 environment installed all 10 numerical runtime dependencies from
+  the lock with hash checking, installed this project, and passed all 30 tests.
+- The original reference replay reproduced the supplied metrics and selected persistence.
+- The declared study completed all 3 experiments on 2 distinct wells and 2,920 observations.
+- The two Oregon real-data replays completed with 24 validation origins apiece, covering four
+  seasons and two target years per epoch. No holdout dates were included in diagnostic metrics.
+- Source fixture SHA-256 hashes, measured counts, and output references were verified.
+- A live full ingestion fetched 1,096 Oregon observations and monitoring-location metadata.
+  An overlapping 30-day incremental ingestion then fetched 30 unchanged observations with no
+  additional measurement/revision rows. Active snapshot count remained 1,096.
+- The synthetic demo completed and retained its explicit synthetic label and separate storage.
+- Headless Chromium rendered the saved catalog and all three reports. Each report has three SVG
+  charts. No page errors occurred; all links resolved locally. Desktop (1,400 pixels) and mobile
+  (390 pixels) pages fit the viewport; wide tables/charts scroll inside their own containers.
+  Desktop and mobile report images were visually inspected during development.
 
-The repository includes a GitHub Actions matrix for Python 3.11/3.12/3.13. Those hosted jobs
-have not been run here; only the local Python 3.12 environment above was exercised.
+Tests cover measurement rejection, negative depth, approval policy, revision conflicts,
+series separation, idempotence, causal anomalies/features, recursive forecasts, holdout isolation,
+spaced origins, seasonal/missing-target diagnostics, pagination trust, failure provenance,
+watermark planning, periodic rebuilds, backfill, withdrawals/restoration, stale revisions,
+quarantine/network/export rollback, concurrent update detection, study failure visibility, and
+CLI failure status. A failure-path test deliberately logs an expected CLI error.
 
-## Example results: real USGS snapshot
+Hosted GitHub Actions was configured for Python 3.11/3.12/3.13 with lint/tests/replays/study, plus
+a separate Python 3.12 locked-install job. Hosted jobs have **not** been run here. Windows and
+macOS execution were not performed. Browser tooling was used only for development verification;
+it is not a runtime dependency. The runtime lock was installed on Linux, not every platform.
 
-Site: USGS-444302070252401. Observations: January 1, 2023 through December 31, 2024.
-Four validation windows, 14 calendar days each, ending before the final 14-day holdout.
+## Reference results
+
+Site USGS-444302070252401, 731 observations from January 1, 2023 through December 31, 2024.
+Four 14-day validation windows ending before the final 14-day holdout.
 
 | Model | Validation MAE (ft) | Validation RMSE (ft) |
 |---|---:|---:|
 | Persistence | 0.1936 | 0.2758 |
 | Random forest lags | 0.3075 | 0.3593 |
 | Ridge lags | 1.7347 | 2.0217 |
-| Seasonal 365-day naive | 3.9482 | 4.0433 |
+| Seasonal 365 | 3.9482 | 4.0433 |
 
-Persistence was selected using validation MAE. On the separate December 18–31, 2024 holdout,
-its MAE was **1.2629 ft** and its RMSE was **1.3928 ft**. This larger error is a reason to
-investigate behavior across periods; the validation result alone is not evidence of reliable
-year-round performance. The forecast after the frozen snapshot covers January 1–14, 2025.
+Persistence's December 18–31, 2024 holdout MAE is 1.2629 feet; RMSE is 1.3928 feet.
+The causal detector flags 45 observations; these are unreviewed flags, not confirmed events.
+The forecast is January 1–14, 2025, not current conditions.
 
-The causal detector flagged 45 of 731 observations under the starter thresholds. These are
-unreviewed flags, not confirmed hydrological or sensor events. No detection accuracy is claimed.
-
-These numbers describe this record and this configuration only. They are not an accuracy claim
-for other wells, future operational conditions, or a regional aquifer model. See METHODOLOGY.md
-for revision/availability limitations and the absence of calibrated uncertainty intervals.
+The complete Oregon results, seasonal error analysis, model failures, ingestion evidence, and
+remaining roadmap work are in RUSH_REVIEW.md. Measured sample outputs are under `sample_study/`
+and `sample_ingestion/`. These results do not establish calibrated uncertainty, generalization
+to other wells, anomaly detection accuracy, regional aquifer conditions, or operational readiness.

@@ -1,0 +1,22 @@
+{
+  "description": "Fixed baselines on two wells; Oregon epochs isolated across long missing periods. No pooling across sites. Do not tune using final holdout results.",
+  "experiments": [
+    {
+      "id": "reference_2023_2024",
+      "config": "default.toml",
+      "snapshot": "../examples/usgs_daily_2023_2024.geojson"
+    },
+    {
+      "id": "oregon_2018_2020",
+      "config": "oregon_2018_2020.toml",
+      "snapshot": "../examples/oregon_daily_2018_2020.geojson",
+      "metadata": "../examples/oregon_monitoring_location.geojson"
+    },
+    {
+      "id": "oregon_2023_2025",
+      "config": "oregon_2023_2025.toml",
+      "snapshot": "../examples/oregon_daily_2023_2025.geojson",
+      "metadata": "../examples/oregon_monitoring_location.geojson"
+    }
+  ]
+}

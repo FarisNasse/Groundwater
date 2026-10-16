@@ -20,6 +20,8 @@ class Config:
     anomaly_window: int = 60
     anomaly_threshold: float = 4.5
     anomaly_scale_floor_ft: float = 0.05
+    validation_stride_days: int | None = None
+    series_id: str | None = None
 
     def __post_init__(self):
         if date.fromisoformat(self.start) > date.fromisoformat(self.end):
@@ -36,6 +38,10 @@ class Config:
             raise ValueError("Invalid anomaly window or threshold")
         if self.anomaly_scale_floor_ft <= 0:
             raise ValueError("Anomaly scale floor must be positive")
+        if self.validation_stride_days is not None and self.validation_stride_days < self.horizon:
+            raise ValueError("validation_stride_days must be >= horizon (nonoverlapping targets)")
+        if self.series_id is not None and (not isinstance(self.series_id, str) or not self.series_id):
+            raise ValueError("series_id must be a nonempty string")
 
     @classmethod
     def load(cls, path: str | Path):

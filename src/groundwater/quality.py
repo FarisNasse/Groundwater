@@ -11,10 +11,12 @@ COLUMNS = ["site", "series_id", "date", "depth_ft", "parameter_code", "statistic
 
 
 def normalize(features, config):
-    accepted, rejected = [], []
+    accepted, rejected, filtered = [], [], 0
     for feature in features:
-        p = feature.get("properties") or {}
         try:
+            if not isinstance(feature, dict) or not isinstance(feature.get("properties"), dict):
+                raise ValueError("invalid_feature_properties")
+            p = feature["properties"]
             site = p["monitoring_location_id"]
             if site != config.site:
                 raise ValueError("site_mismatch")
@@ -35,6 +37,9 @@ def normalize(features, config):
             series_id = p.get("time_series_id") or p.get("timeseries_id")
             if not series_id:
                 raise ValueError("missing_series_id")
+            if config.series_id is not None and str(series_id) != config.series_id:
+                filtered += 1
+                continue
             status = p.get("approval_status", p.get("approvals_status", "Unknown"))
             statuses = status if isinstance(status, list) else [status]
             if config.approved_only and statuses != ["Approved"]:
@@ -56,8 +61,9 @@ def normalize(features, config):
     if not frame.empty:
         keys = ["site", "series_id", "date", "parameter_code", "statistic_id"]
         # An equally revised pair with different values is ambiguous: fail, never choose arbitrarily.
-        conflicts = frame.groupby(keys + ["last_modified"])["depth_ft"].nunique()
-        if (conflicts > 1).any():
+        conflicts = frame.groupby(keys + ["last_modified"])[
+            ["depth_ft", "approval_status", "qualifier"]].nunique()
+        if (conflicts > 1).any().any():
             raise ValueError("Conflicting values with identical series/date/revision")
         duplicate_count = int(frame.duplicated(keys).sum())
         frame = frame.sort_values("last_modified").drop_duplicates(keys, keep="last")
@@ -65,7 +71,8 @@ def normalize(features, config):
             raise ValueError("Multiple time series on the same day; select a single series explicitly")
         frame = frame.sort_values("date").reset_index(drop=True)
     report = {"input_records": len(features), "valid_records": len(frame),
-              "quarantined_records": len(rejected), "duplicate_revisions_removed": duplicate_count}
+              "quarantined_records": len(rejected), "filtered_other_series": filtered,
+              "duplicate_revisions_removed": duplicate_count}
     return frame, rejected, report
 
 

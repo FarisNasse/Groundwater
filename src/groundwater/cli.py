@@ -5,7 +5,9 @@ from pathlib import Path
 import sys
 
 from groundwater.config import Config
+from groundwater.ingestion import ingest
 from groundwater.pipeline import run, write_json
+from groundwater.study import run_study
 from groundwater.usgs import USGSClient, utc_now
 
 
@@ -28,6 +30,18 @@ def main(argv=None):
         command.add_argument("--root", type=Path, default=Path("artifacts"))
         if name == "replay":
             command.add_argument("--file", type=Path, required=True)
+    incremental = commands.add_parser("ingest", help="Audited ingestion, separate from forecasting")
+    incremental.add_argument("--config", type=Path)
+    incremental.add_argument("--root", type=Path, default=Path("artifacts"))
+    incremental.add_argument("--lookback-days", type=int, default=30)
+    incremental.add_argument("--rebuild-days", type=int, default=30)
+    incremental.add_argument("--full-refresh", action="store_true")
+    incremental.add_argument("--file", type=Path, help="Complete offline snapshot for the query window")
+    incremental.add_argument("--backfill-start")
+    incremental.add_argument("--backfill-end")
+    study = commands.add_parser("study", help="Reproduce isolated experiments and a read-only catalog")
+    study.add_argument("--file", type=Path, default=Path("configs/study.json"))
+    study.add_argument("--root", type=Path, default=Path("artifacts"))
     discover = commands.add_parser("discover", help="Find wells with daily mean groundwater depths")
     discover.add_argument("--bbox", type=bbox_arg, required=True)
     discover.add_argument("--root", type=Path, default=Path("artifacts"))
@@ -47,6 +61,18 @@ def main(argv=None):
             write_json(args.root / "discovery.json", {"bbox": args.bbox, "retrieved_at": utc_now(),
                                                        "candidates": candidates, "pages": pages})
             print(json.dumps(candidates, indent=2))
+        elif args.command == "study":
+            output, succeeded = run_study(args.file, args.root)
+            print(f"Study: {output}\nOpen: {output / 'index.html'}")
+            return 0 if succeeded else 1
+        elif args.command == "ingest":
+            config = Config.load(args.config) if args.config else Config()
+            if bool(args.backfill_start) != bool(args.backfill_end):
+                raise ValueError("Supply both --backfill-start and --backfill-end")
+            backfill = ((args.backfill_start, args.backfill_end) if args.backfill_start else None)
+            output = ingest(config, args.root, args.lookback_days, args.full_refresh,
+                            args.rebuild_days, args.file, backfill)
+            print(f"Ingested: {output}\nManifest: {output / 'manifest.json'}")
         else:
             config = Config.load(args.config) if args.config else Config()
             mode = {"run": "live", "replay": "replay", "demo": "synthetic"}[args.command]

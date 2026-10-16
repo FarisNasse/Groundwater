@@ -12,5 +12,7 @@
   "min_coverage": 0.95,
   "anomaly_window": 60,
   "anomaly_threshold": 4.5,
-  "anomaly_scale_floor_ft": 0.05
+  "anomaly_scale_floor_ft": 0.05,
+  "validation_stride_days": null,
+  "series_id": null
 }

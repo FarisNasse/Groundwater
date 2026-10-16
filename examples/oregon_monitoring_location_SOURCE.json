@@ -1,0 +1,9 @@
+{
+  "source": "USGS Water Data OGC API v1 monitoring-locations item",
+  "site": "USGS-420318121312201",
+  "request_url": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items/USGS-420318121312201?f=json",
+  "sha256": "bccecc400669378a82211fc2e598cbacd53eaf7d5ee886f80f36f5e121c69f1a",
+  "notes": "Verbatim source response; field nulls preserved. Exact live full-refresh metadata retrieval is recorded separately in sample_ingestion manifests.",
+  "retrieval_session_utc_date": "2026-10-16",
+  "retrieval_time_note": "Exact metadata request time was not captured; date records this acquisition session."
+}

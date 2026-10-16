@@ -1,0 +1,18 @@
+{
+  "site": "USGS-444302070252401",
+  "start": "2023-01-01",
+  "end": "2024-12-31",
+  "parameter_code": "72019",
+  "statistic_id": "00003",
+  "approved_only": false,
+  "horizon": 14,
+  "folds": 4,
+  "min_train_days": 365,
+  "max_gap_days": 3,
+  "min_coverage": 0.95,
+  "anomaly_window": 60,
+  "anomaly_threshold": 4.5,
+  "anomaly_scale_floor_ft": 0.05,
+  "validation_stride_days": null,
+  "series_id": null
+}

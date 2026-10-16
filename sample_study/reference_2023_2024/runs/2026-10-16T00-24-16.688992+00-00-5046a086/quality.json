@@ -1,0 +1,22 @@
+{
+  "input_records": 731,
+  "valid_records": 731,
+  "quarantined_records": 0,
+  "filtered_other_series": 0,
+  "duplicate_revisions_removed": 0,
+  "first_observed": "2023-01-01",
+  "last_observed": "2024-12-31",
+  "calendar_days": 731,
+  "observed_days": 731,
+  "missing_days": 0,
+  "longest_gap_days": 0,
+  "coverage_within_observed_span": 1.0,
+  "requested_start": "2023-01-01",
+  "requested_end": "2024-12-31",
+  "missing_requested_leading_days": 0,
+  "missing_requested_trailing_days": 0,
+  "age_days_at_run": 654,
+  "provisional_or_other_records": 0,
+  "qualified_records": 0,
+  "forecast_blockers": []
+}
