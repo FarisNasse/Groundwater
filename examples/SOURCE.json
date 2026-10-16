@@ -1,0 +1,15 @@
+{
+  "source": "USGS Water Data OGC API v1, daily collection",
+  "retrieved_at_utc": "2026-10-15T23:47:31.659728+00:00",
+  "request_url": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/daily/items?f=json&monitoring_location_id=USGS-444302070252401&parameter_code=72019&statistic_id=00003&datetime=2023-01-01/2024-12-31&limit=10000",
+  "sha256": "6d094dd4e8605919c8828f945a0bc57365dafecc36112c43c4dba5c3d4d79b68",
+  "records": 731,
+  "date_start": "2023-01-01",
+  "date_end": "2024-12-31",
+  "site": "USGS-444302070252401",
+  "parameter_code": "72019",
+  "statistic_id": "00003",
+  "units": "ft",
+  "pagination": "Complete response; no next link",
+  "notes": "Frozen public-data snapshot, not current conditions. Original source response preserved verbatim."
+}
