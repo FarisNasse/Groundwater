@@ -7,6 +7,16 @@ simple baselines. Each run produces an HTML report and auditable data exports.
 
 This is a local, reproducible research and data engineering project. It is not a deployed service or a finished hydrological model.
 
+**Local dashboard (v0.3):** choose a well → check its data → run an analysis → understand
+the results. On Windows, double-click **Start Dashboard.cmd**. The launcher sets up an isolated
+Python environment on its first run, then opens the dashboard in your browser. Python 3.11+
+must already be installed (3.12 recommended); first-time dependency installation needs internet.
+Subsequent bundled examples and saved results work offline. Keep the launch window open.
+
+Already installed? Run `python -m groundwater dashboard` from this project folder.
+The three opening actions are **Explore an example**, **Analyze a well**, and **View saved results**.
+See [RUN_ME_FIRST.md](RUN_ME_FIRST.md) and [docs/DASHBOARD.md](docs/DASHBOARD.md).
+
 **Rush update (v0.2):** Oregon data, evaluation across years/seasons, validation error charts,
 audited incremental ingestion, a reproducible multi-well study, and a portable experiment catalog.
 See [docs/RUSH_REVIEW.md](docs/RUSH_REVIEW.md) for scope, measured results, and remaining work.
@@ -21,12 +31,12 @@ python -m groundwater study --file configs/study.json --root artifacts/study
 Use **Python 3.11 or newer** (3.12 recommended). Extract this folder, open a terminal in it,
 and install the package. The first installation needs internet access for dependencies.
 
-**Windows PowerShell** — activation is not required:
+**Windows PowerShell** — activation is not required (or use the launcher above):
 
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e .
-.\.venv\Scripts\groundwater.exe replay --file examples/usgs_daily_2023_2024.geojson
+.\.venv\Scripts\python.exe -m groundwater dashboard
 ```
 
 **macOS / Linux:**
@@ -35,11 +45,14 @@ py -3.12 -m venv .venv
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e .
-groundwater replay --file examples/usgs_daily_2023_2024.geojson
+python -m groundwater dashboard
 ```
 
-The program prints a path ending in `report.html`. Open it in your browser. No dashboard
-server, cloud account, API key, or database server is required for this replay.
+The dashboard opens at `http://127.0.0.1:8765`. Keep the terminal open while using it;
+press Ctrl+C to stop. No cloud account, API key, or database server is required for bundled data.
+For the original command-line report, run
+`python -m groundwater replay --file examples/usgs_daily_2023_2024.geojson` and open the printed
+`report.html` path.
 On Windows, use `.\.venv\Scripts\groundwater.exe` in place of `groundwater` below if you have
 not activated the environment. Use `.\.venv\Scripts\python.exe` in place of `python` likewise.
 
@@ -70,6 +83,12 @@ verified locally; Windows installation was not executed here.
 # Reproduce the bundled real-data analysis offline after installing dependencies
 groundwater replay --file examples/usgs_daily_2023_2024.geojson --config configs/default.toml
 
+# Open the guided local dashboard (no TOML editing needed)
+groundwater dashboard
+
+# Choose another local port without opening a browser automatically
+groundwater dashboard --port 8766 --no-browser
+
 # Fetch the same historical range directly from USGS, then run the full analysis
 groundwater run --config configs/default.toml --root artifacts/live
 
@@ -93,6 +112,7 @@ python -m unittest discover -s tests -v
 `artifacts/discovery.json`. A candidate is not guaranteed to have enough dense historical data.
 An empty result means widen the box or choose another region. Copy the chosen identifier into
 a new TOML config, adjust `start` and `end`, and use `--config configs/your_well.toml`.
+Alternatively, select the well in the dashboard; its form creates the settings for you.
 For current monitoring, set `end` to a recent completed date and retain several years of history.
 Keep dates and identifiers quoted in TOML so they remain strings.
 
@@ -205,6 +225,8 @@ src/groundwater/
   pipeline.py      Reproducible run orchestration and provenance
   report.py        Self-contained HTML report and inline chart
   cli.py           Commands and configuration
+  dashboard.py     Local server, persistent jobs, readiness checks, and saved-result API
+  web/             Offline browser interface, charts, and schematic coordinate map
 configs/           TOML settings
 examples/          Frozen real government data and source manifest
 tests/             Offline correctness and leakage tests
@@ -261,7 +283,9 @@ beat, and interpreting validation versus holdout errors. The Oregon study demons
 
 The highest-value next steps are in [docs/ROADMAP.md](docs/ROADMAP.md): incremental ingestion,
 precipitation/recharge features, longer seasonal evaluation, calibrated uncertainty, and a
-multi-well operations dashboard. This starter emphasizes correct data and evaluation before
+multi-well operations dashboard. The local guided interface is now implemented; regional
+modeling, calibrated intervals, and a hosted multi-user service remain future work.
+This starter emphasizes correct data and evaluation before
 adding infrastructure. Keep your eventual README precise about what you personally implemented,
 what was measured, and what remains experimental.
 

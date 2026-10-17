@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#102e35">
+  <title>Groundwater · Local workspace</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <aside class="sidebar">
+    <a href="#home" class="brand"><span class="brand-icon" aria-hidden="true">≈</span><span>Groundwater<small>INTELLIGENCE WORKSPACE</small></span></a>
+    <div class="workspace-label">YOUR WORKSPACE</div>
+    <nav aria-label="Main navigation">
+      <a href="#home" data-nav="home"><span aria-hidden="true">◫</span> Overview</a>
+      <a href="#analyze" data-nav="analyze"><span aria-hidden="true">⌕</span> Analyze a well</a>
+      <a href="#saved" data-nav="saved"><span aria-hidden="true">▤</span> Saved results</a>
+    </nav>
+    <div class="sidebar-bottom"><span class="dot"></span> Runs on your computer<p>USGS public data<br>Daily groundwater depth · feet</p><span class="version">LOCAL EDITION / 0.3</span></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><span id="breadcrumb">Workspace / Overview</span><span class="local-badge"><span class="dot"></span> Local workspace</span></header>
+    <main id="main" tabindex="-1"><p class="loading">Opening your workspace…</p></main>
+    <footer>Public measurements by USGS. Research forecasts; no calibrated uncertainty intervals yet.</footer>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <noscript>This local dashboard needs JavaScript. Existing reports are available in sample_study/index.html.</noscript>
+</body>
+</html>

@@ -24,6 +24,11 @@ def bbox_arg(value):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="USGS groundwater data pipeline and model comparison")
     commands = parser.add_subparsers(dest="command", required=True)
+    dashboard = commands.add_parser("dashboard", help="Open the local guided dashboard")
+    dashboard.add_argument("--root", type=Path, default=Path("artifacts"))
+    dashboard.add_argument("--project", type=Path, help="Extracted project folder with examples")
+    dashboard.add_argument("--port", type=int, default=8765)
+    dashboard.add_argument("--no-browser", action="store_true")
     for name in ("run", "replay", "demo"):
         command = commands.add_parser(name)
         command.add_argument("--config", type=Path, help="TOML configuration; otherwise built-in defaults")
@@ -48,7 +53,12 @@ def main(argv=None):
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     try:
-        if args.command == "discover":
+        if args.command == "dashboard":
+            from groundwater.dashboard import serve
+            if not 0 <= args.port <= 65535:
+                raise ValueError("Port must be between 0 and 65535")
+            serve(args.root, args.port, args.project, not args.no_browser)
+        elif args.command == "discover":
             features, pages = USGSClient().discover(args.bbox, args.root / "bronze" / "discovery")
             candidates = []
             for f in features:

@@ -5,6 +5,11 @@ the local ingestion milestone is implemented, and saved experiments have a read-
 See [RUSH_REVIEW.md](RUSH_REVIEW.md) for delivered work, measured evidence, and remaining items.
 The sections below retain the long-term goals; they are not all marked complete.
 
+**v0.3 progress:** the local guided dashboard now supports well selection, readiness checks,
+explicit model execution, progress/retry, plain-language results, saved wells and saved runs.
+Bundled Oregon results open immediately. See [DASHBOARD.md](DASHBOARD.md) for the delivered
+workflow and limits. Scheduled monitoring, alerts, regional inference, and hosting remain future work.
+
 ## 1. Own the baseline experiment
 
 - Reproduce the supplied real-data run and explain each quality field and error metric.

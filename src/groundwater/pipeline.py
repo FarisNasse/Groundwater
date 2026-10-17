@@ -30,7 +30,29 @@ def source_digest():
     return digest.hexdigest()
 
 
-def run(config, root, mode="live", replay_file=None):
+def acquire(config, root, mode="live", replay_file=None):
+    """Acquire a complete, archived input without training or changing silver storage."""
+    raw_dir = Path(root) / "bronze" / mode
+    if mode == "live":
+        return USGSClient().daily(config, raw_dir)
+    if mode == "replay":
+        raw = Path(replay_file).read_bytes()
+        page = json.loads(raw)
+        if page.get("type") != "FeatureCollection" or not isinstance(page.get("features"), list):
+            raise ValueError("Replay requires a GeoJSON FeatureCollection")
+        if any(x.get("rel") == "next" for x in page.get("links", [])):
+            raise ValueError("Replay file is incomplete (has next page); ingest the full query live")
+        pages = [{**archive(raw, raw_dir), "input_file": str(Path(replay_file).resolve()),
+                  "note": "Replayed input; verify original retrieval provenance"}]
+        return page["features"], pages
+    if mode == "synthetic":
+        measurements = synthetic_features(config)
+        raw = json.dumps({"type": "FeatureCollection", "features": measurements}).encode()
+        return measurements, [{**archive(raw, raw_dir), "note": "Generated fixture; NOT USGS data"}]
+    raise ValueError("Unknown pipeline mode")
+
+
+def run(config, root, mode="live", replay_file=None, *, prepared=None, progress=None):
     if mode not in ("live", "replay", "synthetic"):
         raise ValueError("Unknown pipeline mode")
     if mode == "synthetic":
@@ -39,7 +61,10 @@ def run(config, root, mode="live", replay_file=None):
     run_id = utc_now().replace(":", "-") + "-" + uuid.uuid4().hex[:8]
     directory = root / "runs" / run_id
     directory.mkdir(parents=True)
-    raw_dir = root / "bronze" / mode
+    def notify(stage, message):
+        if progress is not None:
+            progress(stage, message)
+
     manifest = {"run_id": run_id, "started_at": utc_now(), "source_mode": mode,
                 "config": config.as_dict(), "status": "started", "pages": [],
                 "code_sha256": source_digest(),
@@ -48,22 +73,14 @@ def run(config, root, mode="live", replay_file=None):
     write_json(directory / "config.json", config.as_dict())
     try:
         LOG.info("run=%s mode=%s site=%s", run_id, mode, config.site)
-        if mode == "live":
-            measurements, manifest["pages"] = USGSClient().daily(config, raw_dir)
-        elif mode == "replay":
-            raw = Path(replay_file).read_bytes()
-            page = json.loads(raw)
-            if page.get("type") != "FeatureCollection" or not isinstance(page.get("features"), list):
-                raise ValueError("Replay requires a GeoJSON FeatureCollection")
-            if any(x.get("rel") == "next" for x in page.get("links", [])):
-                raise ValueError("Replay file is incomplete (has next page); ingest the full query live")
-            measurements = page["features"]
-            manifest["pages"] = [{**archive(raw, raw_dir), "input_file": str(Path(replay_file).resolve()),
-                                  "note": "Replayed input; verify original retrieval provenance"}]
-        else:
-            measurements = synthetic_features(config)
-            raw = json.dumps({"type": "FeatureCollection", "features": measurements}).encode()
-            manifest["pages"] = [{**archive(raw, raw_dir), "note": "Generated fixture; NOT USGS data"}]
+        notify("downloading", "Opening the checked data snapshot" if prepared is not None
+               else "Downloading USGS observations" if mode == "live"
+               else "Opening the bundled observations")
+        measurements, manifest["pages"] = (prepared if prepared is not None
+                                           else acquire(config, root, mode, replay_file))
+        if prepared is not None:
+            manifest["checked_snapshot_reused"] = True
+        notify("checking", "Checking observations and scientific quality gates")
         frame, rejected, ingest_quality = normalize(measurements, config)
         write_json(directory / "quarantine.json", rejected)
         write_json(directory / "quality.json", ingest_quality)
@@ -83,7 +100,9 @@ def run(config, root, mode="live", replay_file=None):
         anomalies.to_csv(directory / "anomalies.csv")
         if issues:
             raise ValueError("Forecast blocked: " + "; ".join(issues))
+        notify("comparing", "Comparing four models with rolling validation and a final holdout")
         result = evaluate(series, config)
+        notify("saving", "Saving the forecast, report, and reproducible data exports")
         for name in ("leaderboard", "folds", "validation_predictions",
                      "errors_by_lead_day", "errors_by_season", "errors_by_year"):
             result[name].to_csv(directory / f"{name}.csv", index=False)

@@ -92,14 +92,46 @@ def validation_diagnostics(predictions):
     return output
 
 
+def required_calendar_days(config):
+    stride = config.validation_stride_days or config.horizon
+    return config.min_train_days + 2 * config.horizon + (config.folds - 1) * stride
+
+
+def readiness_issues(series, config):
+    """Check all model prerequisites without fitting models or looking at their scores."""
+    needed = required_calendar_days(config)
+    if len(series) < needed:
+        return [f"Need at least {needed} calendar days; got {len(series)}"]
+    horizon = config.horizon
+    development = series.iloc[:-horizon]
+    stride = config.validation_stride_days or horizon
+    windows = []
+    for fold in range(config.folds):
+        end = len(development) - horizon - (config.folds - fold - 1) * stride
+        windows.append((development.iloc[:end], development.iloc[end:end + horizon]))
+    windows.append((development, series.iloc[-horizon:]))
+    windows.append((series, None))
+    for train, actual in windows:
+        filled = train.ffill(limit=config.max_gap_days) if config.max_gap_days else train
+        if len(train) < 365 or not np.isfinite(filled.iloc[-365:]).all():
+            return ["Need a finite 365-day tail after bounded causal filling"]
+        try:
+            training_matrix(train, config.max_gap_days)
+        except ValueError as exc:
+            return [str(exc)]
+        if actual is not None and not actual.notna().any():
+            return ["No observed targets in evaluation window"]
+    return []
+
+
 def evaluate(series, config):
     horizon = config.horizon
     # Final horizon is locked away from model selection. Earlier windows do not overlap.
     development = series.iloc[:-horizon]
     stride = config.validation_stride_days or horizon
-    needed = config.min_train_days + horizon + (config.folds - 1) * stride
-    if len(development) < needed:
-        raise ValueError(f"Need at least {needed + horizon} calendar days; got {len(series)}")
+    needed = required_calendar_days(config)
+    if len(series) < needed:
+        raise ValueError(f"Need at least {needed} calendar days; got {len(series)}")
     rows, forecasts = [], []
     for fold in range(config.folds):
         end = len(development) - horizon - (config.folds - fold - 1) * stride
