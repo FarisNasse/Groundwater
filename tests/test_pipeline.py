@@ -9,10 +9,10 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 
-from groundwater.anomalies import detect_anomalies
+from groundwater.anomalies import detect_anomalies, summarize_anomaly_episodes
 from groundwater.config import Config
 from groundwater.demo import synthetic_features
-from groundwater.forecast import evaluate, features, predict, training_matrix
+from groundwater.forecast import evaluate, features, hydrologic_summary, predict, training_matrix
 from groundwater.pipeline import run
 from groundwater.quality import daily_series, normalize
 from groundwater.storage import upsert
@@ -121,6 +121,18 @@ class ScienceTests(unittest.TestCase):
     def test_insufficient_history_fails_clearly(self):
         with self.assertRaisesRegex(ValueError, "Need at least"):
             evaluate(self.series.iloc[:200], self.config)
+
+    def test_empirical_bands_hydrology_and_anomaly_episodes(self):
+        result = evaluate(self.series, replace(self.config, folds=4))
+        forecast = result["forecast"]
+        self.assertTrue({"lower_80_ft", "upper_80_ft", "lower_95_ft", "upper_95_ft"}.issubset(forecast.columns))
+        self.assertTrue((forecast["lower_95_ft"] <= forecast["lower_80_ft"]).all())
+        self.assertTrue((forecast["upper_80_ft"] <= forecast["upper_95_ft"]).all())
+        hydro = hydrologic_summary(self.series)
+        self.assertIn("sens_slope_ft_per_year", hydro)
+        self.assertGreater(hydro["seasonal_amplitude_ft"], 0)
+        episodes = summarize_anomaly_episodes(detect_anomalies(self.series))
+        self.assertGreaterEqual(len(episodes), 1)
 
 
 class IngestionTests(unittest.TestCase):

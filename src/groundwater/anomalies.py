@@ -19,3 +19,36 @@ def detect_anomalies(series, window=60, threshold=4.5, scale_floor_ft=0.05):
                            "scorable": score.notna()})
     result.index.name = "date"
     return result
+
+
+def summarize_anomaly_episodes(anomalies: pd.DataFrame) -> list[dict]:
+    """Group consecutive flagged observations into interpretable anomaly episodes."""
+    if anomalies.empty or "is_anomaly" not in anomalies.columns:
+        return []
+    flagged = anomalies[anomalies["is_anomaly"].fillna(False)].copy()
+    if flagged.empty:
+        return []
+    flagged.index = pd.to_datetime(flagged.index)
+    flagged = flagged.sort_index()
+    dates = flagged.index
+    flagged["_date"] = dates
+    episode_ids = (dates.to_series().diff().dt.days.gt(1).fillna(True)).cumsum().to_numpy()
+    flagged["_episode"] = episode_ids
+    episodes = []
+    for _, group in flagged.groupby("_episode", sort=True):
+        deviations = group["depth_ft"] - group["reference_median_ft"]
+        peak_idx = group["score"].astype(float).idxmax()
+        peak_row = group.loc[peak_idx]
+        signed_dev = float(peak_row["depth_ft"] - peak_row["reference_median_ft"])
+        episodes.append({
+            "start_date": str(pd.Timestamp(group.index[0]).date()),
+            "end_date": str(pd.Timestamp(group.index[-1]).date()),
+            "duration_days": int(len(group)),
+            "peak_date": str(pd.Timestamp(peak_idx).date()),
+            "peak_depth_ft": float(peak_row["depth_ft"]),
+            "reference_median_ft": float(peak_row["reference_median_ft"]),
+            "peak_score": round(float(peak_row["score"]), 3),
+            "max_deviation_ft": round(float(deviations.abs().max()), 3),
+            "direction": "drawdown_spike" if signed_dev > 0 else "recharge_or_upward_spike",
+        })
+    return episodes

@@ -7,9 +7,9 @@ from pathlib import Path
 import platform
 import uuid
 
-from groundwater.anomalies import detect_anomalies
+from groundwater.anomalies import detect_anomalies, summarize_anomaly_episodes
 from groundwater.demo import synthetic_features
-from groundwater.forecast import evaluate
+from groundwater.forecast import evaluate, hydrologic_summary
 from groundwater.quality import daily_series, normalize
 from groundwater.report import write_report
 from groundwater.storage import upsert
@@ -91,13 +91,15 @@ def run(config, root, mode="live", replay_file=None, *, prepared=None, progress=
             (directory / "observations.csv").read_bytes()).hexdigest()
         upsert(frame, root / "silver" / f"{mode}.sqlite")
         series, series_quality, issues = daily_series(frame, config)
-        quality = {**ingest_quality, **series_quality, "forecast_blockers": issues}
-        write_json(directory / "quality.json", quality)
         LOG.info("validated=%s quarantined=%s coverage=%.3f", len(frame), len(rejected),
-                 quality["coverage_within_observed_span"])
+                 series_quality["coverage_within_observed_span"])
         anomalies = detect_anomalies(series, config.anomaly_window, config.anomaly_threshold,
                                      config.anomaly_scale_floor_ft)
         anomalies.to_csv(directory / "anomalies.csv")
+        episodes = summarize_anomaly_episodes(anomalies)
+        quality = {**ingest_quality, **series_quality, "forecast_blockers": issues,
+                   "anomaly_episodes": episodes, "hydrology": hydrologic_summary(series)}
+        write_json(directory / "quality.json", quality)
         if issues:
             raise ValueError("Forecast blocked: " + "; ".join(issues))
         notify("comparing", "Comparing four models with rolling validation and a final holdout")

@@ -72,6 +72,119 @@ def metrics(actual, predicted):
             "bias_ft": float(np.mean(residual)), "n_observed": len(residual)}
 
 
+def calibrate_intervals(validation_predictions: pd.DataFrame, model_name: str,
+                        point_forecast: pd.Series, holdout_actual: pd.Series | None = None,
+                        holdout_pred: pd.Series | None = None
+                        ) -> tuple[pd.DataFrame, pd.DataFrame | None, dict]:
+    """Experimental empirical bands, with widths determined before the final holdout.
+
+    Use a lead's errors when at least 20 exist, otherwise pool validation leads.
+    These are descriptive error quantiles, not guaranteed conformal intervals:
+    errors are dependent and the same validation set also selects the model.
+    """
+    minimum_samples = 20
+    if (holdout_actual is None) != (holdout_pred is None):
+        raise ValueError("Supply both holdout actuals and predictions, or neither")
+    if holdout_actual is not None and not holdout_actual.index.equals(holdout_pred.index):
+        raise ValueError("Holdout actuals and predictions must have identical dates")
+    sub = validation_predictions[validation_predictions["model"] == model_name].copy()
+    valid = sub[np.isfinite(sub["actual_ft"]) & np.isfinite(sub["predicted_ft"])].copy()
+    valid["abs_err"] = (valid["predicted_ft"] - valid["actual_ft"]).abs()
+    pooled_errors = valid["abs_err"].to_numpy(dtype=float)
+    n_leads = max(len(point_forecast), len(holdout_pred) if holdout_pred is not None else 0)
+    widths = np.full((n_leads, 2), np.nan)
+    calibration = []
+    for lead in range(1, n_leads + 1):
+        lead_errs = valid.loc[valid["lead_day"] == lead, "abs_err"].to_numpy(dtype=float)
+        if len(lead_errs) >= minimum_samples:
+            errors, source = lead_errs, "lead_day"
+        elif len(lead_errs) and len(pooled_errors) >= minimum_samples:
+            errors, source = pooled_errors, "pooled_validation_leads"
+        else:
+            errors, source = np.array([]), "unavailable"
+        if len(errors):
+            widths[lead - 1] = np.quantile(errors, [0.80, 0.95], method="higher")
+        calibration.append({"lead_day": lead, "source": source,
+                            "lead_samples": int(len(lead_errs)), "samples": int(len(errors))})
+
+    def band_frame(points, column):
+        frame = pd.DataFrame({column: points})
+        for i, level in enumerate((80, 95)):
+            frame[f"lower_{level}_ft"] = points.to_numpy(dtype=float) - widths[:len(points), i]
+            frame[f"upper_{level}_ft"] = points.to_numpy(dtype=float) + widths[:len(points), i]
+        frame.index.name = "date"
+        return frame
+
+    forecast_frame = band_frame(point_forecast, "predicted_depth_ft")
+    available = bool(len(point_forecast) and np.isfinite(widths[:len(point_forecast)]).all())
+    diagnostics = {
+        "method": "validation_residual_empirical",
+        "available": available,
+        "coverage_guarantee": False,
+        "calibration_samples": int(len(pooled_errors)),
+        "minimum_calibration_samples": minimum_samples,
+        "calibration_by_lead": calibration,
+        "warning": ("Experimental bands from validation absolute-error quantiles. "
+                    "Sparse leads pool errors across forecast days; pooled coverage is not "
+                    "lead-specific coverage. Dependent errors, model selection, and refitting "
+                    "mean nominal 80%/95% coverage is not guaranteed."),
+    }
+    if not available:
+        diagnostics["warning"] = (
+            "Bands are unavailable for some or all forecast days: require observed validation "
+            "targets at that lead and at least 20 usable errors in the chosen group. "
+            + diagnostics["warning"]
+        )
+    for i, level in enumerate((80, 95)):
+        finite = widths[:len(point_forecast), i]
+        finite = finite[np.isfinite(finite)]
+        diagnostics[f"mean_width_{level}_ft"] = float(2 * finite.mean()) if len(finite) else None
+    holdout_frame = None
+    if holdout_pred is not None:
+        holdout_frame = band_frame(holdout_pred, "predicted_ft")
+        holdout_frame.insert(0, "actual_ft", holdout_actual)
+        for level in (80, 95):
+            cols = ["actual_ft", "predicted_ft", f"lower_{level}_ft", f"upper_{level}_ft"]
+            scored = holdout_frame.loc[np.isfinite(holdout_frame[cols]).all(axis=1)]
+            count = len(scored)
+            covered = ((scored.actual_ft >= scored[f"lower_{level}_ft"]) &
+                       (scored.actual_ft <= scored[f"upper_{level}_ft"]))
+            diagnostics[f"holdout_n_scored_{level}"] = count
+            diagnostics[f"holdout_coverage_{level}"] = float(covered.mean()) if count else None
+    return forecast_frame, holdout_frame, diagnostics
+
+
+def hydrologic_summary(series: pd.Series) -> dict:
+    """Describe depth, monthly-median amplitude, and approximate median pairwise slope."""
+    clean = series.dropna()
+    if clean.empty:
+        return {}
+    values = clean.to_numpy(dtype=float)
+    days = (clean.index - clean.index[0]).days.to_numpy(dtype=float)
+    step = max(1, int(np.ceil(len(values) / 180)))
+    idx_v, idx_d = values[::step], days[::step]
+    slopes = []
+    for i in range(len(idx_v)):
+        dt = idx_d[i + 1:] - idx_d[i]
+        valid = dt >= 30.0
+        if np.any(valid):
+            slopes.extend(((idx_v[i + 1:][valid] - idx_v[i]) / (dt[valid] / 365.25)).tolist())
+    sens_slope = float(np.median(slopes)) if slopes else 0.0
+    monthly = clean.groupby(clean.index.month).median()
+    seasonal_amp = float(monthly.max() - monthly.min()) if len(monthly) >= 2 else 0.0
+    diffs = series.diff().dropna()
+    return {
+        "median_depth_ft": round(float(np.median(values)), 3),
+        "p10_depth_ft": round(float(np.percentile(values, 10)), 3),
+        "p90_depth_ft": round(float(np.percentile(values, 90)), 3),
+        "seasonal_amplitude_ft": round(seasonal_amp, 3),
+        "sens_slope_ft_per_year": round(sens_slope, 4),
+        "trend_direction": ("deepening" if sens_slope > 0.05
+                            else "recovering" if sens_slope < -0.05 else "stable"),
+        "daily_change_std_ft": round(float(diffs.std()) if len(diffs) > 1 else 0.0, 4),
+    }
+
+
 def validation_diagnostics(predictions):
     """Validation-only error slices; season is meteorological season of the target date."""
     data = predictions.copy()
@@ -159,16 +272,16 @@ def evaluate(series, config):
     chosen = str(leaderboard.iloc[0].model)
     holdout_actual = series.iloc[-horizon:]
     holdout_prediction = predict(chosen, development, horizon, config.max_gap_days)
+    future = predict(chosen, series, horizon, config.max_gap_days)
+    future_frame, holdout_frame, uncertainty = calibrate_intervals(
+        predictions, chosen, future, holdout_actual, holdout_prediction
+    )
     holdout = {"selected_model": chosen, "selection_metric": "pooled validation MAE (ft)",
                "start": str(holdout_actual.index[0].date()),
                "end": str(holdout_actual.index[-1].date()),
-               **metrics(holdout_actual, holdout_prediction)}
-    holdout_frame = pd.DataFrame({"actual_ft": holdout_actual,
-                                  "predicted_ft": holdout_prediction})
-    future = predict(chosen, series, horizon, config.max_gap_days)
-    future_frame = pd.DataFrame({"predicted_depth_ft": future})
-    for frame in (holdout_frame, future_frame):
-        frame.index.name = "date"
+               **metrics(holdout_actual, holdout_prediction),
+               "uncertainty": uncertainty}
     return {"leaderboard": leaderboard, "folds": folds, "validation_predictions": predictions,
             "holdout": holdout, "holdout_predictions": holdout_frame,
-            "forecast": future_frame, **validation_diagnostics(predictions)}
+            "forecast": future_frame, "uncertainty": uncertainty,
+            "hydrology": hydrologic_summary(series), **validation_diagnostics(predictions)}

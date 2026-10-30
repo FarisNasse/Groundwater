@@ -204,7 +204,27 @@ windows with expanding training histories, ranked by pooled **MAE in feet**. RMS
 bias are also exported. The selected model is scored on the final holdout and refit on all
 available data to forecast the next horizon. All multiday forecasts are recursive; future
 actual values are not fed into lag features. Missing observed targets are never imputed for
-scoring. There are no calibrated prediction intervals yet.
+scoring.
+
+New runs also export **experimental empirical bands** using the selected model's
+pre-holdout validation absolute errors. The nominal 80%/95% levels are descriptive,
+not guaranteed coverage. A lead needs at least 20 errors for its own quantiles;
+otherwise its errors are pooled with other validation leads if at least 20 total
+errors exist. Twenty is a display threshold, not proof of calibration. Leads
+without observed validation targets or enough errors have blank bounds. The
+bands are not scaled or forced to widen with lead time. The same validation set
+also selects the model, errors can be dependent, and the final refit differs from
+validation fits. Final-holdout coverage and the number of scored days are saved
+in `holdout.json`; those outcomes never tune widths. `forecast.csv`,
+`holdout_predictions.csv`, the dashboard, and new technical reports use the same
+saved bounds. Older runs retain their original forecasts and exports; rerun an
+analysis to obtain bands.
+
+Anomaly episodes group flagged calendar days, splitting at gaps. Descriptive
+hydrology statistics include monthly-median depth amplitude and an approximate
+median pairwise slope (sampled on long histories, using pairs at least 30 days
+apart). The trend labels describe direction, not statistical significance or
+an aquifer-wide diagnosis. Python 3.11+ remains the supported runtime.
 
 The anomaly detector compares each value against the **preceding** 60 calendar days using a
 median/MAD score, with a configurable scale floor in feet. It reports warm-up and unscorable

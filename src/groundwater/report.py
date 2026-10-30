@@ -41,10 +41,13 @@ def error_chart(frame, dimension, title):
 
 def chart(series, anomalies, forecast):
     observed = series.iloc[-365:]
-    combined = observed.to_list() + forecast["predicted_depth_ft"].to_list()
+    extra = []
+    if "lower_95_ft" in forecast.columns and "upper_95_ft" in forecast.columns:
+        extra = forecast["lower_95_ft"].to_list() + forecast["upper_95_ft"].to_list()
+    combined = observed.to_list() + forecast["predicted_depth_ft"].to_list() + extra
     finite = [x for x in combined if np.isfinite(x)]
     low, high = min(finite) - 0.2, max(finite) + 0.2
-    n, width, height = len(combined), 960, 320
+    n, width, height = len(observed) + len(forecast), 960, 320
 
     def point(i, value):
         return f"{55 + i / max(n - 1, 1) * 875:.2f},{30 + (value-low)/(high-low)*240:.2f}"
@@ -61,6 +64,30 @@ def chart(series, anomalies, forecast):
         segments.append(current)
     lines = ''.join(f'<polyline points="{" ".join(s)}" fill="none" stroke="#176e8b" '
                     'stroke-width="2"/>' for s in segments)
+    def band(level, opacity):
+        lower, upper = f"lower_{level}_ft", f"upper_{level}_ft"
+        if lower not in forecast or upper not in forecast:
+            return ""
+        polygons, segment = [], []
+
+        def finish():
+            if len(segment) < 2:
+                return
+            top = [point(len(observed) + i, hi) for i, lo, hi in segment]
+            bottom = [point(len(observed) + i, lo) for i, lo, hi in reversed(segment)]
+            polygons.append(f'<polygon points="{" ".join(top + bottom)}" '
+                            f'fill="#a36c00" fill-opacity="{opacity}"/>')
+
+        for i, (lo, hi) in enumerate(zip(forecast[lower], forecast[upper])):
+            if np.isfinite(lo) and np.isfinite(hi):
+                segment.append((i, lo, hi))
+            else:
+                finish()
+                segment = []
+        finish()
+        return "".join(polygons)
+
+    band_svg = band(95, 0.14) + band(80, 0.24)
     future_points = " ".join(point(len(observed) + i, val)
                              for i, val in enumerate(forecast.predicted_depth_ft))
     dots = []
@@ -72,7 +99,7 @@ def chart(series, anomalies, forecast):
     return (f'<svg role="img" aria-label="Observed depth and forecast, increasing depth downward" '
             f'viewBox="0 0 {width} {height}"><rect width="960" height="320" fill="#f5f9fc"/>'
             f'<text x="4" y="25" font-size="13">{low:.1f} ft</text>'
-            f'<text x="4" y="275" font-size="13">{high:.1f} ft</text>{lines}'
+            f'<text x="4" y="275" font-size="13">{high:.1f} ft</text>{lines}{band_svg}'
             f'<polyline points="{future_points}" fill="none" stroke="#a36c00" '
             f'stroke-width="3"/>{"".join(dots)}'
             f'<text x="55" y="308" font-size="13">{observed.index[0].date()}</text>'
@@ -85,6 +112,11 @@ def write_report(path, config, source, quality, anomalies, result):
              "replay": "Replayed GeoJSON — see source provenance"}[source]
     table = result["leaderboard"].to_html(index=False, float_format=lambda x: f"{x:.4f}", border=0)
     holdout = result["holdout"]
+    uncertainty = result.get("uncertainty", {})
+    band_note = ("Gold shading: experimental nominal 80% and 95% empirical bands. "
+                 "Nominal coverage is not guaranteed."
+                 if uncertainty.get("available") else
+                 "Empirical bands are unavailable: too few validation errors for all forecast days.")
     diagnostics = "".join(error_chart(result[key], dimension, title) for key, dimension, title in (
         ("errors_by_lead_day", "lead_day", "Validation MAE by forecast lead day"),
         ("errors_by_season", "season", "Validation MAE by target season")))
@@ -108,7 +140,7 @@ This is one well's time series; it does not measure total aquifer storage.</p>
 <div class="card">Final holdout MAE<br><strong>{holdout['mae_ft']:.3f} ft</strong></div>
 <div class="card">Flagged observations<br><strong>{int(anomalies.is_anomaly.sum())}</strong></div></div>
 <h2>Recent observations and forecast</h2><div class="scroll plot">{chart(series=result['series'], anomalies=anomalies, forecast=result['forecast'])}</div>
-<p>Blue: measured depth. Red: anomaly flag. Gold: forecast. Depth increases downward.
+<p>Blue: measured depth. Red: anomaly flag. Gold line: point forecast. {band_note} Depth increases downward.
 Forecast begins after the latest observation ({quality['last_observed']}), which is
 {quality['age_days_at_run']} days before this run; historical replay forecasts are historical.</p>
 <h2>Validation model comparison</h2><div class="scroll">{table}</div>
@@ -122,7 +154,10 @@ JJA: June–August; SON: September–November. Missing seasons have no evaluated
 Counts and signed bias are in the accompanying CSV files; sparse slices are uncertain.</p>
 <h2>Final holdout</h2><pre>{escape(json.dumps(holdout, indent=2))}</pre>
 <p>The final period was excluded from model selection. The selected model is then refit on all
-available observations for the next forecast. No calibrated uncertainty intervals are implemented.</p>
+available observations for the next forecast. Experimental bands use only pre-holdout validation
+errors. Coverage measured on the final holdout is diagnostic only; it does not tune the widths.
+Sparse forecast leads pool errors across leads. The same validation data also select the model,
+and errors are dependent, so these bands have no conformal coverage guarantee.</p>
 <h2>Data quality</h2><pre>{escape(json.dumps(quality, indent=2))}</pre>
 <p>Anomalies compare each value with preceding observations only. Flags can reflect pumping,
 recharge, seasonal transitions, or sensor issues; investigate before excluding them. Qualified

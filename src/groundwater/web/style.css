@@ -632,6 +632,19 @@ details>.inline-fields {
   fill:none;
   stroke-dasharray:5 3
 }
+.chart .band-95 {
+  fill:#087c76;
+  fill-opacity:.12
+}
+.chart .band-80 {
+  fill:#087c76;
+  fill-opacity:.22
+}
+.chart .anomaly-dot {
+  fill:var(--red);
+  stroke:#fff;
+  stroke-width:1
+}
 .legend {
   display:flex;
   flex-wrap:wrap;
@@ -650,6 +663,17 @@ details>.inline-fields {
 }
 .legend i.forecast {
   background:var(--teal)
+}
+.legend i.band-swatch {
+  height:10px;
+  background:#087c7638;
+  border:1px solid var(--teal)
+}
+.legend i.anomaly-swatch {
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--red)
 }
 .result-heading {
   display:flex;

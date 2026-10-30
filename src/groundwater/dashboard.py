@@ -18,8 +18,9 @@ import webbrowser
 
 import pandas as pd
 
+from groundwater.anomalies import detect_anomalies, summarize_anomaly_episodes
 from groundwater.config import Config
-from groundwater.forecast import readiness_issues, required_calendar_days
+from groundwater.forecast import hydrologic_summary, readiness_issues, required_calendar_days
 from groundwater.pipeline import acquire, run, write_json
 from groundwater.quality import daily_series, normalize
 from groundwater.usgs import USGSClient, utc_now
@@ -404,11 +405,47 @@ class Dashboard:
             result["error"] = explain_error(provenance.get("error", "Analysis did not finish"))
             return result
         result["holdout"] = read_json(directory / "holdout.json")
-        result["leaderboard"] = pd.read_csv(directory / "leaderboard.csv").to_dict("records")
-        result["forecast"] = pd.read_csv(directory / "forecast.csv").to_dict("records")
+        leaderboard_df = pd.read_csv(directory / "leaderboard.csv")
+        folds_df = pd.read_csv(directory / "folds.csv") if (directory / "folds.csv").exists() else pd.DataFrame()
+        pers_row = leaderboard_df[leaderboard_df["model"] == "persistence"]
+        pers_mae = float(pers_row["mae_ft"].iloc[0]) if not pers_row.empty else None
+        win_counts = {}
+        if not folds_df.empty and {"fold", "model", "mae_ft"}.issubset(folds_df.columns):
+            for _, grp in folds_df.groupby("fold"):
+                best_m = grp.sort_values(["mae_ft", "model"]).iloc[0]["model"]
+                win_counts[best_m] = win_counts.get(best_m, 0) + 1
+        leaderboard_rows = []
+        for row in leaderboard_df.to_dict("records"):
+            skill = (1.0 - float(row["mae_ft"]) / pers_mae) if pers_mae and pers_mae > 1e-9 else None
+            leaderboard_rows.append({
+                **row,
+                "fold_wins": int(win_counts.get(row["model"], 0)),
+                "skill_vs_persistence": round(skill, 4) if skill is not None else None,
+            })
+        result["leaderboard"] = leaderboard_rows
+        forecast_df = pd.read_csv(directory / "forecast.csv")
         frame = pd.read_csv(directory / "observations.csv")
-        series, _, _ = daily_series(frame, Config(**config))
-        result["observations"] = [{"date": str(day.date()), "value": None if pd.isna(value) else float(value)}
+        cfg = Config(**config)
+        series, _, _ = daily_series(frame, cfg)
+        # Opening an older run must not silently change its saved forecast.
+        result["uncertainty"] = result["holdout"].get("uncertainty", {
+            "available": False,
+            "warning": "This saved run has no empirical bands. Run a new analysis to generate them.",
+        })
+        result["forecast"] = forecast_df.astype(object).where(forecast_df.notna(), None).to_dict("records")
+        result["hydrology"] = quality.get("hydrology") or hydrologic_summary(series)
+        if (directory / "anomalies.csv").exists():
+            anom_df = pd.read_csv(directory / "anomalies.csv", index_col="date")
+        else:
+            anom_df = detect_anomalies(series, cfg.anomaly_window, cfg.anomaly_threshold, cfg.anomaly_scale_floor_ft)
+        result["anomaly_episodes"] = quality.get("anomaly_episodes") or summarize_anomaly_episodes(anom_df)
+        flagged_dates = anom_df.index[anom_df["is_anomaly"].fillna(False)]
+        anom_dates = set(pd.to_datetime(flagged_dates).strftime("%Y-%m-%d"))
+        for slice_name in ("errors_by_lead_day", "errors_by_season", "errors_by_year"):
+            slice_path = directory / f"{slice_name}.csv"
+            result[slice_name] = pd.read_csv(slice_path).to_dict("records") if slice_path.exists() else []
+        result["observations"] = [{"date": str(day.date()), "value": None if pd.isna(value) else float(value),
+                                   "anomaly": str(day.date()) in anom_dates}
                                   for day, value in series.items()]
         return result
 
